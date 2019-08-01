@@ -3,24 +3,14 @@ package com.tavisca.workshops.httpserver;
 import java.io.*;
 import java.net.Socket;
 
-
 public class HandleMultipleClientRequest extends Thread {
-    Socket socket;
-    BufferedInputStream in;
-    BufferedOutputStream out;
-    PrintWriter printWriter;
-    FileReader fileReader;
-    BufferedReader br;
 
+
+    private Socket socket;
 
     public HandleMultipleClientRequest(Socket socket) {
         this.socket = socket;
-        try {
-            in = new BufferedInputStream(socket.getInputStream());
-            printWriter = new PrintWriter(socket.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override
@@ -28,6 +18,7 @@ public class HandleMultipleClientRequest extends Thread {
 
         try (BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
              BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream())) {
+
             parseClientRequestToGetDesiredFileRequested(in, out);
             closeSocketAfterEachRequest();
 
@@ -36,8 +27,10 @@ public class HandleMultipleClientRequest extends Thread {
         }
     }
 
-    private void closeSocketAfterEachRequest() throws IOException {
-        socket.close();
+    private String readClientRequest(BufferedInputStream in) throws IOException {
+        byte b[] = new byte[256];
+        in.read(b);
+        return new String(b);
     }
 
     private void parseClientRequestToGetDesiredFileRequested(BufferedInputStream in, BufferedOutputStream out) throws IOException {
@@ -47,18 +40,21 @@ public class HandleMultipleClientRequest extends Thread {
         String getRequestName = parse[0];
         String filename = parse[1].replace("/", "");
 
+        respondToTheGivenInputByTheClient(out, getRequestName, filename);
+        out.flush();
+    }
+
+    private void respondToTheGivenInputByTheClient(BufferedOutputStream out, String getRequestName, String filename) throws IOException {
         if (getRequestName.equals("GET")) {
             Response response = new Response();
             response.sendResponse(out, filename);
 
         }
-        out.flush();
+
     }
 
-    private String readClientRequest(BufferedInputStream in) throws IOException {
-        byte b[] = new byte[256];
-        in.read(b);
-        return new String(b);
+    private void closeSocketAfterEachRequest() throws IOException {
+        socket.close();
     }
 }
 
