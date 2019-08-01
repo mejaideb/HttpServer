@@ -12,26 +12,27 @@ public class Server {
     private boolean isAcceptingMoreClient = true;
 
     public Server(int port) throws IOException, InterruptedException {
-        serverSocket = new ServerSocket(port);
-        System.out.println("Server started");
+        serverSocket(port);
         while (isAcceptingMoreClient) {
-
             acceptingClients();
-            threadProcess();
+            clientThreadStarted();
         }
     }
 
-    private void threadProcess() throws InterruptedException {
+    private void serverSocket(int port) throws IOException {
+
+        serverSocket = new ServerSocket(port);
+
+    }
+
+    private void clientThreadStarted() throws InterruptedException {
         Thread t = new HandleMultipleClientRequest(socket);
-        System.out.println("Thread Starting..");
         t.start();
-        //t.join(); -- thread join stops the running thread and keeps waiting the running thread..until it completes itself..
-        System.out.println("Thread finished ..");
+
     }
 
     private void acceptingClients() throws IOException {
         System.out.println("Waiting for a client ...");
-
         socket = serverSocket.accept();
         System.out.println("Client accepted");
     }
